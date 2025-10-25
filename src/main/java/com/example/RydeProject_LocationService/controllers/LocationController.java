@@ -1,7 +1,9 @@
 package com.example.RydeProject_LocationService.controllers;
 
+import com.example.RydeProject_LocationService.dtos.DriverLocationDto;
 import com.example.RydeProject_LocationService.dtos.NearbyDriversRequestDto;
 import com.example.RydeProject_LocationService.dtos.SaveDriverLocationRequestDto;
+import com.example.RydeProject_LocationService.services.RedisLocationServiceImpl;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.GeoOperations;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.RydeProject_LocationService.services.LocationService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,15 +23,13 @@ import java.util.List;
 @RequestMapping("api//location")
 public class LocationController {
 
-    private StringRedisTemplate stringRedisTemplate;
+    private LocationService locationService;
 
 
-    private static final String DRIVER_GEO_OPS_KEY= "drivers";
 
-    private static final Double SEARCH_RADIUS= 5.0;
 
-    public LocationController (StringRedisTemplate stringRedisTemplate){
-        this.stringRedisTemplate = stringRedisTemplate;
+    public LocationController (LocationService locationService){
+        this.locationService =  locationService;
     }
 
 
@@ -37,14 +38,11 @@ public class LocationController {
 
         try{
 
-            GeoOperations<String , String> geoOps = stringRedisTemplate.opsForGeo();
+            Boolean response = locationService.saveDriverLocation(saveDriverLocationRequestDto.getDriverId(),
+                    saveDriverLocationRequestDto.getLatitude(), saveDriverLocationRequestDto.getLongitude());
 
-            geoOps.add(
-                    DRIVER_GEO_OPS_KEY ,
-                    new RedisGeoCommands.GeoLocation<>(saveDriverLocationRequestDto.getDriverId(),
-                            new Point(saveDriverLocationRequestDto.getLatitude(), saveDriverLocationRequestDto.getLongitude())));
 
-            return new ResponseEntity<>(true , HttpStatus.CREATED);
+            return new ResponseEntity<>(response , HttpStatus.CREATED);
         }catch (Exception e){
             System.out.println(e.getMessage());
             System.out.println(e);
@@ -54,24 +52,11 @@ public class LocationController {
     }
 
     @GetMapping("/nearbt/drivers")
-    public ResponseEntity<List<String>> getNearbyDrivers(NearbyDriversRequestDto nearbyDriversRequestDto){
+    public ResponseEntity<List<DriverLocationDto>> getNearbyDrivers(NearbyDriversRequestDto nearbyDriversRequestDto){
 
        try{
-           GeoOperations<String , String> geoOps = stringRedisTemplate.opsForGeo();
-           Distance radius = new Distance(SEARCH_RADIUS , Metrics.KILOMETERS);
-
-           Circle within = new Circle(
-                   new Point(nearbyDriversRequestDto.getLatitude() , nearbyDriversRequestDto.getLongitude()),
-                   radius);
-
-           GeoResults<RedisGeoCommands.GeoLocation<String>> results = geoOps.radius(DRIVER_GEO_OPS_KEY , within);
-
-           List<String> drivers = new ArrayList<>();
-           for(GeoResult<RedisGeoCommands.GeoLocation<String>> result : results){
-
-               drivers.add(result.getContent().getName());
-
-           }
+           List<DriverLocationDto> drivers = locationService.getNearbyDriver(nearbyDriversRequestDto.getLatitude() ,
+                   nearbyDriversRequestDto.getLongitude());
 
            return new ResponseEntity<>(drivers , HttpStatus.OK);
        }catch (Exception e){
