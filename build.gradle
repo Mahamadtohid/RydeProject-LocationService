@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.7'
+	id 'org.springframework.boot' version '3.3.5'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -23,6 +23,9 @@ configurations {
 repositories {
 	mavenCentral()
 }
+//ext {
+//	set('springCloudVersion', "2023.0.3")   // ✅ add this version property
+//}
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
@@ -36,10 +39,18 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-//	implementation 'com.example:RydeProject-EntityService:0.0.3'
+//	implementation 'com.example:RydeProject-EntityService:0.0.5'
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("redis.clients:jedis:4.4.3")
+	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.1")
 }
+
+
+//dependencyManagement {
+//	imports {
+//		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" // ✅ required for proper version alignment
+//	}
+//}
 
 tasks.named('test') {
 	useJUnitPlatform()

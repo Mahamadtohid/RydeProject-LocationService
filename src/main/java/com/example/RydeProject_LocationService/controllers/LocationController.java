@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("api//location")
+@RequestMapping("api/location")
 public class LocationController {
 
     private LocationService locationService;
@@ -51,7 +51,7 @@ public class LocationController {
         return new ResponseEntity<>(false , HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @GetMapping("/nearbt/drivers")
+    @PostMapping("/nearby/drivers")
     public ResponseEntity<List<DriverLocationDto>> getNearbyDrivers(NearbyDriversRequestDto nearbyDriversRequestDto){
 
        try{
